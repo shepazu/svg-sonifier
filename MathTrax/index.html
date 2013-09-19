@@ -1,0 +1,99 @@
+<html lang="en"><head>
+  <meta charset="utf-8">
+  <title>MathTrax Sonifier</title>
+  <script src="sonifier-mathtrax.js"></script>
+	
+</head>
+<body>
+
+  <section id="app">
+    <h1>MathTrax Sonifier</h1>  
+    <section id="content"> 
+      <div class="upload button icon-upload">
+          <span>Upload an SVG file…</span>
+          <input type="file" id="fileButton" accept="image/svg+xml">
+      </div>
+      <br>
+
+      <div id="display-area">
+      </div>
+  </section>
+
+  <script>
+    var eli = 0;
+    var svgEls = null;
+    var speechArray = [];
+    var filename = null;
+    var svgRoot = null;
+    var svgns = "http://www.w3.org/2000/svg";
+    var xlinkns = "http://www.w3.org/1999/xlink";
+    
+    var hiliter = null;
+    
+    function init() {
+      if ( "undefined" == typeof speechSynthesis ) {
+        document.getElementById( "listen" ).setAttribute("disabled", "disabled");
+      }
+    }
+
+    function uploadFile(evt) {
+      var f = evt.target.files[0]; // FileList object
+      
+      // Only process image files.
+      if ("image/svg+xml" == f.type) {
+       filename = f.name;
+        // console.log("ok")
+        var reader = new FileReader();
+        // console.log("reader")
+
+        // Closure to capture the file information.
+        reader.onload = (function(file) {
+          return function(e) {
+            var displayArea = document.getElementById( "display-area" );
+            var svgContent = e.target.result;
+            var svgStart = svgContent.indexOf("<svg");
+            
+            var prolog = svgContent.substring(0, (svgStart - 1));
+            svgContent = svgContent.substring( svgStart );
+            
+            displayArea.innerHTML = (svgContent);
+            svgRoot = displayArea.firstElementChild;
+            
+            initSonifier();
+          };
+        })(f);
+
+        reader.readAsBinaryString(f);
+      }
+    }
+
+    function initSonifier () {
+      var svgroot = document.querySelector("svg");
+      
+      var paths = document.querySelectorAll("path");
+      // console.log(paths)
+
+      var dataline = paths[ paths.length - 1 ]
+      // console.log(dataline)
+      var chartarea = dataline.parentNode;
+      // console.log(chartarea)
+
+      // var bbox = document.documentElement.getBBox();
+      // console.log(bbox)
+
+      var gridlines = document.querySelectorAll("line");
+      var chartHeight = gridlines[0].getAttribute("y1");
+      var chartWidth = gridlines[1].getAttribute("x2");
+
+      var sonifier = new Sonifier();
+      // sonifier.init( chartarea, dataline, bbox.width, bbox.height, "white" );
+      sonifier.init( svgroot, chartarea, dataline, chartWidth, chartHeight, "white" );
+    }   
+    // document.getElementById('list').addEventListener('mouseover', hilite, false);
+    document.getElementById('fileButton').addEventListener('change', uploadFile, false);
+    window.onload = init;
+  </script>
+
+
+
+</body></html>

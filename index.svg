@@ -1,0 +1,183 @@
+<svg xmlns="http://www.w3.org/2000/svg"  xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="-50 -10 450 340">
+  <title>SVG Audio Path</title>
+
+  <script xlink:href="sonifier.js"></script>
+
+  <script type="text/javascript"><![CDATA[
+    var chartWidth = 400;
+    var chartHeight = 300;
+
+    var data = { 
+      "dow-data": {
+        "2007": {
+            "Q1": 12414.89,
+            "Q2": 13366.39,
+            "Q3": 13488.45333,
+            "Q4": 13522.18333
+        },
+        "2008": {
+            "Q1": 12393.21333,
+            "Q2": 12269.48667,
+            "Q3": 11257.54667,
+            "Q4": 8976.813333
+        },
+        "2009": {
+            "Q1": 7557.57,
+            "Q2": 8371.816667,
+            "Q3": 9460.056667,
+            "Q4": 10161.87333
+        },
+        "2010": {
+            "Q1": 10416.40667,
+            "Q2": 10306.42,
+            "Q3": 10422.90333,
+            "Q4": 11234.00667
+        },
+        "2011": {
+            "Q1": 12146,
+            "Q2": 12598.22333,
+            "Q3": 11556.71667,
+            "Q4": 12072.75
+        }
+      }
+    };
+
+    window.onload = function () {
+      var svgns = 'http://www.w3.org/2000/svg';
+
+      var labelsGroup = document.getElementById("labels-group");
+      var xAxisGroup = document.getElementById("x-axis");
+      var yAxisGroup = document.getElementById("y-axis");
+      var chartGroup = document.getElementById("chart-line");
+      var line = null;
+      
+      for (var dataset in data) {
+        if (data.hasOwnProperty(dataset)) {
+          var yearlabels = [];
+          var labels = [];
+          var points = [];
+
+          for (var year in data[dataset]) {
+          if (data[dataset].hasOwnProperty(year)) {
+             yearlabels.push( year );
+
+             for (var point in data[dataset][year]) {
+                if (data[dataset][year].hasOwnProperty(point)) {
+                   points.push( data[dataset][year][point] );
+                   labels.push( point );
+                   //console.log(point + " -> " + data[dataset][point]);
+                }
+             }
+          }
+        }
+
+        var interval = chartWidth / (points.length - 1);
+        //console.log(interval);
+
+
+        var min = points.min();
+        var max = points.max();
+        //console.log("max: " + max + "   min: " + min );
+
+        var range = max - min;
+        var minPrecision = Math.pow(10, ((10, parseInt(min).toString().length) - 1)); 
+        var rangeFloor = Math.floor(min / minPrecision) * minPrecision;
+        var rangeCeiling = Math.ceil(max / minPrecision) * minPrecision;
+        var rangeScale = rangeCeiling - rangeFloor;
+
+        var scale = rangeScale / chartHeight;
+
+        // console.log("rangeFloor: " + rangeFloor 
+        //           + "   rangeCeiling: " + rangeCeiling  
+        //           + "   scale: " + scale );
+
+        var lp = "";
+        for ( var p = 0; points.length > p; p++ ) {
+          var value = points[p];
+          var xPos = (interval * p);
+
+          lp += xPos + "," + (chartHeight - ((value - rangeFloor) / scale)) + " "; 
+
+          // x-axis intevals
+          var label = document.createElementNS(svgns, 'text');
+          label.setAttribute("x", xPos);
+          label.setAttribute("y", chartHeight + 10);
+          label.appendChild( document.createTextNode( labels[p]) );
+          xAxisGroup.appendChild( label );
+        }
+
+        // x-axis group intevals
+        var yearinterval = chartWidth / (yearlabels.length);
+        for ( var y = 0; yearlabels.length > y; y++ ) {
+          var yearval = yearlabels[y];
+          var xPos = (yearinterval * y) + (yearinterval/2);
+
+          var label = document.createElementNS(svgns, 'text');
+          label.setAttribute("x", xPos);
+          label.setAttribute("font-size", "1.5em");
+          //label.setAttribute("text-anchor", "end");
+          label.setAttribute("y", chartHeight + 25);
+          label.appendChild( document.createTextNode( yearlabels[y]) );
+          xAxisGroup.appendChild( label );
+        }
+
+        // y-axis 
+        var yValue = rangeFloor;
+        while ( yValue <= rangeCeiling ) {
+          var yPos = (chartHeight - (yValue / scale)) + chartHeight;
+          var label = document.createElementNS(svgns, 'text');
+          label.setAttribute("x", "-10");
+          label.setAttribute("y", yPos + 5);
+          label.setAttribute("font-size", "1em");
+          label.setAttribute("text-anchor", "end");
+          label.appendChild( document.createTextNode( yValue ) );
+          yAxisGroup.appendChild( label );
+
+          yValue += minPrecision;
+        }
+
+        // draw line plot
+        line = document.createElementNS(svgns, 'polyline');
+        //line.setAttribute("id", dataset);
+        line.setAttribute("id", "dataLine");
+        line.setAttribute("points", lp);
+        line.setAttribute("fill", "none");
+        line.setAttribute("stroke", "hsl(300, 76%, 72%)");
+        line.setAttribute("stroke-width", "2");
+        line.setAttribute("stroke-linecap", "round");
+        line.setAttribute("stroke-linejoin", "round");
+        chartGroup.appendChild( line );    
+        }        
+      }
+
+      var chartarea = document.getElementById("chart-area");
+      var sonifier = new Sonifier();
+      sonifier.init( chartarea, line, chartWidth, chartHeight, "white" );
+    }   
+
+  ]]></script>
+
+  <defs>
+    <linearGradient id="purple-gradient" x1="20%" y1="90%" x2="100%" y2="0">
+      <stop stop-color="black" offset="0%"/>
+      <stop stop-color="hsl(300, 100%, 25%)" offset="100%"/>
+    </linearGradient>
+  </defs>
+
+
+  <rect x="-1000" y="-1000" width="3000" height="3000" fill="black" />
+  <rect x="-50" y="0" width="100%" height="100%" fill="none" stroke="black"/>
+
+  <g id="chart-area"> 
+    <rect x="0" y="0" width="400" height="300" fill="url(#purple-gradient)" stroke="none"/>
+    <g id="chart-line"> </g>
+  </g>
+
+  <!-- <text id="output" x="50%" y="290" font-family="Verdana, sans serif" font-size="1em" text-anchor="middle"> </text> -->
+  <g id="labels-group" fill="hsl(300, 76%, 72%)" text-anchor="middle" font-size="8" font-family="Verdana, sans serif">
+    <g id="x-axis"> </g>
+    <g id="y-axis"> </g>
+  </g>
+
+
+</svg>
