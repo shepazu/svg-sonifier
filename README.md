@@ -1,4 +1,4 @@
 SVG-Sonifier
 ============
 
-Sonification of SVG Graphs via Web Audio and Speech APIs
+Sonification of SVG charts and graphs via Web Audio and Speech APIs
