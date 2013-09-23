@@ -17,6 +17,22 @@
 
       <div id="display-area">
       </div>
+      
+      <div>
+        <p><b>Key commands:</b></p>
+        <ul>
+          <li>Toggle Play / Pause: P</li>
+          <li>Stop: S</li>
+          <li>Cursor Speed Up: ]</li>
+          <li>Cursor Speed Down: [</li>
+          <li>Reverse Play Direction: O</li>
+          <li>Step Forward: Right Arrow</li>
+          <li>Step Back: Left Arrow</li>
+          <li>Announce Coordinates: Enter</li>
+          <li>Toggle Mute: M</li>
+        </ul>  
+        
+      </div>  
   </section>
 
   <script>
@@ -84,10 +100,13 @@
       var gridlines = document.querySelectorAll("line");
       var chartHeight = gridlines[0].getAttribute("y1");
       var chartWidth = gridlines[1].getAttribute("x2");
+      
+      var xAxisRange = [-10, 10];
+      var yAxisRange = [10, -10];
 
       var sonifier = new Sonifier();
       // sonifier.init( chartarea, dataline, bbox.width, bbox.height, "white" );
-      sonifier.init( svgroot, chartarea, dataline, chartWidth, chartHeight, "white" );
+      sonifier.init( svgroot, chartarea, dataline, chartWidth, chartHeight, xAxisRange, yAxisRange, "white" );
     }   
     // document.getElementById('list').addEventListener('mouseover', hilite, false);
     document.getElementById('fileButton').addEventListener('change', uploadFile, false);
