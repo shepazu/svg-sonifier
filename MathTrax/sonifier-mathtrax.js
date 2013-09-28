@@ -309,13 +309,13 @@ Sonifier.prototype.setVolume = function ( gain ) {
 }
 
 
-Sonifier.prototype.toggleVolume = function () { 
-	if ( this.isMute ) {
-		this.isMute = false;
-    this.volume.connect(this.audioContext.destination);
-	} else {
+Sonifier.prototype.toggleVolume = function ( forceMute ) { 
+	if ( !this.isMute || forceMute ) {
 		this.isMute = true;
     this.volume.disconnect(this.audioContext.destination);
+	} else {
+		this.isMute = false;
+    this.volume.connect(this.audioContext.destination);
 	}
 }
 
@@ -327,11 +327,15 @@ Sonifier.prototype.speak = function () {
 	  }
 		var msg = "x = " + this.axisX.scale( this.valuePoint.x );
 		msg += ", y = " + this.axisY.scale( this.valuePoint.y );
+		
+		var t = this;
+		t.toggleVolume( true );
 
     var u = new SpeechSynthesisUtterance();
     u.text = msg;
     u.lang = 'en-US';
     u.rate = 1.2;
+		u.onend = function(event) { t.toggleVolume(); }
     speechSynthesis.speak( u );
   }
 }
