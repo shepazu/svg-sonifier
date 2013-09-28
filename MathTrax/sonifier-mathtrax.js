@@ -5,7 +5,7 @@ function Sonifier() {
   this.cursor = null;
   this.cursorpoint = null;
   this.output = null;
-  this.context = null;
+  this.audioContext = null;
   this.oscillator = null;
   this.volume = null;
   this.volumeLevel = 1;
@@ -21,6 +21,7 @@ function Sonifier() {
   this.valuePoint = null;
   this.isMute = false;
   this.isPlaying = false;
+  this.isReady = false;
   this.timer = null;
   this.cursorSpeed = 25;
   this.cursorDirection = 1;
@@ -44,6 +45,19 @@ Sonifier.prototype.init = function ( svgroot, chartarea, dataLine, width, height
   this.axisY = new Axis( yAxis[0], yAxis[1], 0, height);
   this.cursorColor = color;
 
+
+  // this.oscillator = null;
+  // this.volume = null;
+  this.volumeLevel = 1;
+  this.valuePoint = null;
+  this.isMute = false;
+  this.timer = null;
+  this.cursorDirection = 1;
+  this.cursorIntersect = false;
+	this.setFrequency(0);
+	this.dataLinePoints = null;
+
+
 	// create cursor line and point
   this.cursor = document.createElementNS(this.svgns, 'path');
   this.cursor.setAttribute("id", "cursor");
@@ -64,12 +78,16 @@ Sonifier.prototype.init = function ( svgroot, chartarea, dataLine, width, height
   this.cursorpoint.setAttribute("stroke", "none");
   this.chartarea.appendChild( this.cursorpoint );
 
-	this.setFrequency(0);
 
   this.chartarea.addEventListener('mousemove', bind(this, this.trackPointer), false );
-  document.documentElement.addEventListener('keydown', bind(this, this.trackKeys), false );
   // document.documentElement.addEventListener('click', this.toggleAudio, false );
-};
+
+	if ( !this.isReady ) {
+	  document.documentElement.addEventListener('keydown', bind(this, this.trackKeys), false );
+	}
+
+  this.isReady = true;
+}
 
 
 Sonifier.prototype.trackKeys = function (event) {
@@ -245,19 +263,6 @@ Sonifier.prototype.updateCursor = function () {
 			}
 		}
 
-		// if (!this.valuePoint) {
-		// 	this.valuePoint = {x:0, y:0};
-		// 	if (this.cursorIntersect) {
-		// 		this.setVolume( 0 );
-		// 	  this.cursorpoint.setAttribute( "stroke", "none" );
-		// 		this.cursorIntersect = false;				
-		// 	}
-		// } else if (this.valuePoint && !this.cursorIntersect) {
-		// 	this.setVolume( 1 );
-		//   this.cursorpoint.setAttribute( "stroke", this.cursorColor );
-		// 	this.cursorIntersect = true;
-		// }
-
 		this.positionCursor( x, this.valuePoint.y, false );
 
 	  var frequency = 500 - this.valuePoint.y;
@@ -278,16 +283,16 @@ Sonifier.prototype.positionCursor = function ( x, y, setLine ) {
 
 Sonifier.prototype.setFrequency = function ( frequency ) { 
   if (!this.oscillator) {
-    this.context = new AudioContext();
+    this.audioContext = new AudioContext();
 
-    this.oscillator = this.context.createOscillator();
+    this.oscillator = this.audioContext.createOscillator();
     this.oscillator.detune.value = -50; //min="-100" max="100"
 
     this.oscillator.start(0);
 
-    this.volume = this.context.createGainNode(); 
+    this.volume = this.audioContext.createGainNode(); 
     this.oscillator.connect(this.volume);
-    this.volume.connect(this.context.destination);
+    this.volume.connect(this.audioContext.destination);
     this.volume.gain.value = 0;
   }
 
@@ -305,10 +310,10 @@ Sonifier.prototype.setVolume = function ( gain ) {
 Sonifier.prototype.toggleVolume = function () { 
 	if ( this.isMute ) {
 		this.isMute = false;
-    this.volume.connect(this.context.destination);
+    this.volume.connect(this.audioContext.destination);
 	} else {
 		this.isMute = true;
-    this.volume.disconnect(this.context.destination);
+    this.volume.disconnect(this.audioContext.destination);
 	}
 }
 

@@ -36,15 +36,14 @@
   </section>
 
   <script>
-    var eli = 0;
-    var svgEls = null;
-    var speechArray = [];
+    "use strict";
+    
     var filename = null;
     var svgRoot = null;
     var svgns = "http://www.w3.org/2000/svg";
     var xlinkns = "http://www.w3.org/1999/xlink";
     
-    var hiliter = null;
+    var sonifier = null;
     
     function init() {
       if ( "undefined" == typeof speechSynthesis ) {
@@ -87,12 +86,9 @@
       var svgroot = document.querySelector("svg");
       
       var paths = document.querySelectorAll("path");
-      // console.log(paths)
 
       var dataline = paths[ paths.length - 1 ]
-      // console.log(dataline)
       var chartarea = dataline.parentNode;
-      // console.log(chartarea)
 
       // var bbox = document.documentElement.getBBox();
       // console.log(bbox)
@@ -103,8 +99,11 @@
       
       var xAxisRange = [-10, 10];
       var yAxisRange = [10, -10];
+      
+      if (!sonifier) {
+        sonifier = new Sonifier();
+      }
 
-      var sonifier = new Sonifier();
       // sonifier.init( chartarea, dataline, bbox.width, bbox.height, "white" );
       sonifier.init( svgroot, chartarea, dataline, chartWidth, chartHeight, xAxisRange, yAxisRange, "white" );
     }   
