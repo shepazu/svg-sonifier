@@ -113,7 +113,7 @@ Sonifier.prototype.trackKeys = function (event) {
 
     case "p":
     case "u+0050":
-      this.play();
+      this.togglePlay();
       break;
 
     case "s":
@@ -144,8 +144,8 @@ Sonifier.prototype.trackKeys = function (event) {
 }   
 
 
-Sonifier.prototype.play = function ( xAxis, yAxis ) {
-	if ( this.timer ) {
+Sonifier.prototype.togglePlay = function ( forcePause ) {
+	if ( this.timer || forcePause ) {
 		this.stopPlay();
 	} else {
 		var t = this; 
@@ -174,7 +174,7 @@ Sonifier.prototype.setPlayRate = function ( rateDelta ) {
 	this.cursorSpeed += rateDelta;
 	if ( this.timer ) {
 		this.stopPlay();
-		this.play();
+		this.togglePlay();
 	}
 }   
 
@@ -194,7 +194,7 @@ Sonifier.prototype.setDirection = function () {
 	}
 	
 	if ( !this.timer ) {
-		this.play();
+		this.togglePlay();
 	}
 }   
 
@@ -330,12 +330,16 @@ Sonifier.prototype.speak = function () {
 		
 		var t = this;
 		t.toggleVolume( true );
+		t.togglePlay( true );
 
     var u = new SpeechSynthesisUtterance();
     u.text = msg;
     u.lang = 'en-US';
     u.rate = 1.2;
-		u.onend = function(event) { t.toggleVolume(); }
+		u.onend = function(event) { 
+			t.toggleVolume(); 
+			t.togglePlay();
+		}
     speechSynthesis.speak( u );
   }
 }
