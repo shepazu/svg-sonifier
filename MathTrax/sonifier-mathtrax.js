@@ -83,9 +83,11 @@ Sonifier.prototype.init = function ( svgroot, chartarea, dataLine, width, height
   // document.documentElement.addEventListener('click', this.toggleAudio, false );
 
 	if ( !this.isReady ) {
+		// only register key listener on first initialization
 	  document.documentElement.addEventListener('keydown', bind(this, this.trackKeys), false );
 	}
-
+	
+	// indicate first initialization
   this.isReady = true;
 }
 
