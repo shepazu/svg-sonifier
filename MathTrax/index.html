@@ -94,8 +94,12 @@
       // console.log(bbox)
 
       var gridlines = document.querySelectorAll("line");
-      var chartHeight = gridlines[0].getAttribute("y1");
-      var chartWidth = gridlines[1].getAttribute("x2");
+      var yAxisLine = gridlines[0];
+      var xAxisLine = gridlines[1];
+      var chartHeight = yAxisLine.getAttribute("y1");
+      var chartWidth = xAxisLine.getAttribute("x2");
+      var yAxisPos = yAxisLine.getAttribute("x1");
+      var xAxisPos = xAxisLine.getAttribute("y1");
       
       var xAxisRange = [-10, 10];
       var yAxisRange = [10, -10];
@@ -105,7 +109,7 @@
       }
 
       // sonifier.init( chartarea, dataline, bbox.width, bbox.height, "white" );
-      sonifier.init( svgroot, chartarea, dataline, chartWidth, chartHeight, xAxisRange, yAxisRange, "white" );
+      sonifier.init( svgroot, chartarea, dataline, chartWidth, chartHeight, xAxisRange, yAxisRange, xAxisPos, yAxisPos, "white" );
     }   
     // document.getElementById('list').addEventListener('mouseover', hilite, false);
     document.getElementById('fileButton').addEventListener('change', uploadFile, false);

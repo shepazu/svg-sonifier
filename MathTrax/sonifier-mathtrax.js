@@ -34,15 +34,15 @@ function Sonifier() {
   this.svgns = "http://www.w3.org/2000/svg";
 }
 
-Sonifier.prototype.init = function ( svgroot, chartarea, dataLine, width, height, xAxis, yAxis, color ) {	
+Sonifier.prototype.init = function ( svgroot, chartarea, dataLine, width, height, xAxis, yAxis, xAxisPos, yAxisPos, color ) {	
   this.svgroot = svgroot;
 	this.chartarea = chartarea;
 	this.dataLine = dataLine;
 	this.maxx = width;
 	this.maxy = height;
   this.coords = this.svgroot.createSVGPoint();
-  this.axisX = new Axis( xAxis[0], xAxis[1], 0, width);
-  this.axisY = new Axis( yAxis[0], yAxis[1], 0, height);
+  this.axisX = new Axis( xAxis[0], xAxis[1], xAxisPos, 0, width);
+  this.axisY = new Axis( yAxis[0], yAxis[1], yAxisPos, 0, height);
   this.cursorColor = color;
 
 
@@ -89,6 +89,9 @@ Sonifier.prototype.init = function ( svgroot, chartarea, dataLine, width, height
 	
 	// indicate first initialization
   this.isReady = true;
+
+	var axisMsg = "X-axis: " + this.axisX.min + " to " + this.axisX.max + ". Y-axis: " + this.axisY.min + " to " + this.axisY.max;
+	this.speak( axisMsg, false );
 }
 
 
@@ -107,7 +110,7 @@ Sonifier.prototype.trackKeys = function (event) {
       break;
 
     case "enter":
-      this.speak();
+      this.speak( null, true );
       break;
 
 
@@ -148,6 +151,7 @@ Sonifier.prototype.togglePlay = function ( forcePause ) {
 	if ( this.timer || forcePause ) {
 		this.stopPlay();
 	} else {
+	  this.isPlaying = true;
 		var t = this; 
 
 		this.timer = setInterval( function() { 
@@ -157,13 +161,14 @@ Sonifier.prototype.togglePlay = function ( forcePause ) {
 	}
 }   
 
-Sonifier.prototype.stopPlay = function ( x, y ) { 
+Sonifier.prototype.stopPlay = function () { 
 	clearInterval( this.timer );
 	this.timer = null;
 }   
 
 Sonifier.prototype.resetPlay = function () { 
 	this.stopPlay( 1, 1 );
+  this.isPlaying = false;
 	this.coords.x = 0;
 	this.coords.y = 0;
 	this.positionCursor( this.coords.x, this.coords.y, true );
@@ -320,27 +325,34 @@ Sonifier.prototype.toggleVolume = function ( forceMute ) {
 }
 
 
-Sonifier.prototype.speak = function () { 
+Sonifier.prototype.speak = function ( msg ) { 
   if ( "undefined" != typeof speechSynthesis ) {
 	  if ( speechSynthesis.speaking ) {
 	    speechSynthesis.cancel();
 	  }
-		var msg = "x = " + this.axisX.scale( this.valuePoint.x );
-		msg += ", y = " + this.axisY.scale( this.valuePoint.y );
+	
+		if ( !msg ) {
+			msg = "x = " + this.axisX.scale( this.valuePoint.x );
+			msg += ", y = " + this.axisY.scale( this.valuePoint.y );
+		}
 		
 		var t = this;
 		t.toggleVolume( true );
-		t.togglePlay( true );
-
-    var u = new SpeechSynthesisUtterance();
-    u.text = msg;
-    u.lang = 'en-US';
-    u.rate = 1.2;
-		u.onend = function(event) { 
-			t.toggleVolume(); 
-			t.togglePlay();
+		if ( t.isPlaying ) {
+			t.togglePlay( true );
 		}
-    speechSynthesis.speak( u );
+
+    var voice = new SpeechSynthesisUtterance();
+    voice.text = msg;
+    voice.lang = 'en-US';
+    voice.rate = 1.2;
+		voice.onend = function() { 
+			t.toggleVolume(); 
+			if ( t.isPlaying ) {
+				t.togglePlay();
+			}
+		}
+    speechSynthesis.speak( voice );
   }
 }
 
@@ -363,10 +375,11 @@ function bind (scope, fn) {
 	}
 }
 
-function Axis(min, max, chartMin, chartMax) {
+function Axis(min, max, pos, chartMin, chartMax) {
 	if ( arguments.length > 0 ) {
 		this.min = min;
 		this.max = max;
+		this.pos = pos; // position of the axis line along the axis
 		this.chartMin = chartMin;
 		this.chartMax = chartMax;
 	}
