@@ -27,6 +27,8 @@ function Sonifier() {
   this.cursorDirection = 1;
   this.cursorColor = "white";
   this.cursorIntersect = false;
+  this.tickContext = null;
+  this.tickTone = null;
 
   this.coords = null;
 
@@ -90,8 +92,8 @@ Sonifier.prototype.init = function ( svgroot, chartarea, dataLine, width, height
 	// indicate first initialization
   this.isReady = true;
 
-	var axisMsg = "X-axis: " + this.axisX.min + " to " + this.axisX.max + ". Y-axis: " + this.axisY.min + " to " + this.axisY.max;
-	this.speak( axisMsg, false );
+	// var axisMsg = "X-axis: " + this.axisX.min + " to " + this.axisX.max + ". Y-axis: " + this.axisY.min + " to " + this.axisY.max;
+	// this.speak( axisMsg, false );
 }
 
 
@@ -157,7 +159,7 @@ Sonifier.prototype.togglePlay = function ( forcePause ) {
 		this.timer = setInterval( function() { 
 			t.coords.x += t.cursorDirection;
 		  t.updateCursor();
-		}, t.cursorSpeed)
+		}, t.cursorSpeed);
 	}
 }   
 
@@ -275,6 +277,22 @@ Sonifier.prototype.updateCursor = function () {
 	  var frequency = 500 - this.valuePoint.y;
 	  this.setFrequency ( frequency );		
 	}
+	
+	if ( this.axisX.pos == x 
+		|| this.axisX.chartMin == x
+		|| this.axisX.chartMax == x ) {
+			console.log("tick")
+			this.playTickmark();
+		// 	var msg = "";
+		// 	if (  this.axisX.pos == x ) {
+		// 		msg = "axis marker: " + x;
+		// 	} else if (  this.axisX.chartMin == x ) {
+		// 		msg = "min: " + x;
+		// 	}	else if (  this.axisX.chartMax == x ) {
+		// 		msg = "max: " + x;
+		// 	}
+		// console.log(msg)
+	}
 }   
 
 Sonifier.prototype.positionCursor = function ( x, y, setLine ) { 
@@ -299,8 +317,16 @@ Sonifier.prototype.setFrequency = function ( frequency ) {
 
     this.volume = this.audioContext.createGainNode(); 
     this.oscillator.connect(this.volume);
-    this.volume.connect(this.audioContext.destination);
+    // this.volume.connect(this.audioContext.destination);
     this.volume.gain.value = 0;
+
+		// Create bandpass filter
+		var filter = this.audioContext.createBiquadFilter();
+		this.volume.connect(filter);
+		filter.connect(this.audioContext.destination);
+		// Create and specify parameters for the low-pass filter.
+		filter.type = 0; // Low-pass filter. See BiquadFilterNode docs
+		filter.frequency.value = 440; // Set cutoff to 440 HZ
   }
 
   this.oscillator.frequency.value = frequency;
@@ -322,6 +348,24 @@ Sonifier.prototype.toggleVolume = function ( forceMute ) {
 		this.isMute = false;
     this.volume.connect(this.audioContext.destination);
 	}
+}
+
+
+Sonifier.prototype.playTickmark = function () { 
+  if (!this.tickTone) {
+    this.tickContext = new AudioContext();
+
+    this.tickTone = this.tickContext.createOscillator();
+	  this.tickTone.frequency.value = 200;
+  }
+
+  this.tickTone.connect(this.tickContext.destination);
+  this.tickTone.start(0);
+
+	var t = this; 
+	setTimeout( function() { 
+    t.tickTone.disconnect(t.tickContext.destination);
+	}, 100);
 }
 
 
