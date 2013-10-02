@@ -104,6 +104,17 @@
       var xAxisRange = [-10, 10];
       var yAxisRange = [10, -10];
       
+      var tickmarks = document.querySelectorAll('line[y1="0"]');
+      console.log(tickmarks)
+      var tickArray = [];
+      for (var tm = 0; tickmarks.length > tm +1; tm++ ) {
+        var eachTick = tickmarks[tm];
+        console.log(eachTick)
+        var x1 = eachTick.getAttribute("x1");
+        tickArray.push(x1);
+      }
+      console.log(tickArray)
+      
       if (!sonifier) {
         sonifier = new Sonifier();
       }
